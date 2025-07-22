@@ -6,9 +6,27 @@ from django.contrib.auth import get_user_model
 from django.http import HttpResponse
 from django.core.files.storage import FileSystemStorage
 from datetime import datetime
-
+from django.http import JsonResponse
+from django.contrib.auth.models import User
 from .models import Attendance, Payroll, Vendor, Material
 from .forms import AttendanceForm, PayrollForm, VendorForm, MaterialForm
+
+# For PDF generation using xhtml2pdf
+from django.template.loader import get_template
+from xhtml2pdf import pisa
+import openpyxl
+# For Excel export
+from openpyxl import Workbook
+from io import BytesIO
+
+# For sending files as HTTP response
+from django.http import HttpResponse
+
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from .models import Attendance, Payroll, VendorTransaction
+from django.db.models import Sum
+from datetime import datetime
 
 User = get_user_model()
 @login_required
@@ -240,13 +258,11 @@ def add_payroll(request):
 
 @login_required
 def attendance_view(request):
-    return render(request, 'attendance.html')
+    attendances = Attendance.objects.filter(user=request.user)
+    return render(request, 'attendance.html', {'attendances': attendances})
 
 
 
-@login_required
-def reports_view(request):
-    return render(request, 'reports.html')
 
 @login_required
 def payroll_view(request):
@@ -257,10 +273,179 @@ def payroll_view(request):
 
 @login_required
 def settings_view(request):
-    return render(request, 'settings.html')
+    user = request.user
+
+    if request.method == 'POST':
+        user.first_name = request.POST.get('firstName')
+        user.last_name = request.POST.get('lastName')
+        password = request.POST.get('password')
+        
+        if password:
+            user.set_password(password)
+        user.save()
+        messages.success(request, 'Settings updated successfully.')
+        return redirect('settings')
+
+    return render(request, 'settings.html', {'user': user})
 
 def dashboard_view(request):
     return render(request, 'dashboard.html')
 
 def notifications(request):
     return render(request, 'core/notifications.html')
+
+
+def generate_report(request):
+    if request.method == 'GET':
+        report_type = request.GET.get('reportType')
+        start_date = request.GET.get('startDate')
+        end_date = request.GET.get('endDate')
+
+        if report_type == "Attendance":
+            records = Attendance.objects.filter(date__range=[start_date, end_date])
+            data = list(records.values('id', 'employee__name', 'date', 'status'))
+        else:
+            data = []
+
+        return JsonResponse({'status': 'success', 'data': data})
+    
+# ----------------- REPORTS VIEW -----------------
+
+@login_required
+def reports_view(request):
+    report_data = None
+    report_type = None
+
+    if request.method == 'POST':
+        report_type = request.POST.get('reportType')
+        start_date = request.POST.get('startDate')
+        end_date = request.POST.get('endDate')
+
+        if report_type == 'Attendance':
+            queryset = Attendance.objects.filter(date__range=[start_date, end_date])
+            report_data = list(queryset.values('user__email', 'date', 'status'))
+
+        elif report_type == 'Payroll':
+            queryset = Payroll.objects.filter(start_date__range=[start_date, end_date])
+            report_data = list(queryset.values('user__email', 'start_date', 'end_date', 'location', 'calculated_salary'))
+
+        elif report_type == 'Vendor Transactions':
+            queryset = VendorTransaction.objects.filter(date__range=[start_date, end_date])
+            report_data = list(queryset.values('vendor_name', 'amount', 'date'))
+
+    return render(request, 'reports.html', {
+        'report_data': report_data,
+        'report_type': report_type,
+        'report_generated_at': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    })
+
+# ----------------- REPORT CHART DATA -----------------
+
+@csrf_exempt
+def get_report_data(request):
+    if request.method == 'POST':
+        report_type = request.POST.get('report_type', '').strip().lower()
+        print("Report Type Received:", report_type)
+
+        start_date = datetime.strptime(request.POST.get('start_date'), "%Y-%m-%d")
+        end_date = datetime.strptime(request.POST.get('end_date'), "%Y-%m-%d")
+
+        data = {}
+
+        if report_type == 'attendance':
+            total = Attendance.objects.filter(date__range=(start_date, end_date)).count()
+            present = Attendance.objects.filter(date__range=(start_date, end_date), status='Present').count()
+            absent = total - present
+            data = {'labels': ['Present', 'Absent'], 'values': [present, absent]}
+
+        elif report_type == 'payroll':
+            paid = Payroll.objects.filter(start_date__range=(start_date, end_date), is_approved=True).aggregate(
+                total=Sum('calculated_salary'))['total'] or 0
+            pending = Payroll.objects.filter(start_date__range=(start_date, end_date), is_approved=False).aggregate(
+                total=Sum('calculated_salary'))['total'] or 0
+            data = {'labels': ['Approved', 'Unapproved'], 'values': [paid, pending]}
+
+        elif report_type == 'vendor transactions':
+            completed = VendorTransaction.objects.filter(date__range=(start_date, end_date), amount__gt=0).count()
+            pending = Vendor.objects.count() - completed
+            data = {'labels': ['Completed', 'Pending'], 'values': [completed, pending]}
+
+        return JsonResponse(data)
+
+    return JsonResponse({'error': 'Invalid method'}, status=400)
+
+# ----------------- PDF EXPORTS -----------------
+@login_required
+def export_pdf(request):
+    report_type = request.GET.get('reportType')
+    start_date = request.GET.get('startDate')
+    end_date = request.GET.get('endDate')
+
+    context = {}
+
+    if report_type == 'Attendance':
+        queryset = Attendance.objects.filter(date__range=[start_date, end_date])
+        context['data'] = queryset.select_related('user')
+        template = get_template('pdf_attendance.html')
+
+    elif report_type == 'Payroll':
+        queryset = Payroll.objects.filter(start_date__range=[start_date, end_date])
+        context['data'] = queryset
+        template = get_template('pdf_payroll.html')
+
+    elif report_type == 'Vendor Transactions':
+        queryset = VendorTransaction.objects.filter(date__range=[start_date, end_date])
+        context['data'] = queryset
+        template = get_template('pdf_vendor.html')
+
+    else:
+        return HttpResponse("Invalid report type", status=400)
+
+    html = template.render(context)
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{report_type.lower()}_report.pdf"'
+    pisa.CreatePDF(html, dest=response)
+    return response
+
+
+# ----------------- EXCEL EXPORTS -----------------
+
+@login_required
+def export_excel(request):
+    report_type = request.GET.get('reportType')
+    start_date = request.GET.get('startDate')
+    end_date = request.GET.get('endDate')
+
+    wb = Workbook()
+    ws = wb.active
+
+    if report_type == 'Attendance':
+        ws.title = "Attendance"
+        ws.append(['User', 'Date', 'Status'])
+        for entry in Attendance.objects.filter(date__range=[start_date, end_date]):
+            ws.append([entry.user.email, entry.date, entry.status])
+
+    elif report_type == 'Payroll':
+        ws.title = "Payroll"
+        ws.append(['User', 'Start Date', 'End Date', 'Location', 'Salary'])
+        for entry in Payroll.objects.filter(start_date__range=[start_date, end_date]):
+            ws.append([
+                entry.user.email,
+                entry.start_date,
+                entry.end_date,
+                entry.location,
+                entry.calculated_salary
+            ])
+
+    elif report_type == 'Vendor Transactions':
+        ws.title = "Vendors"
+        ws.append(['Vendor Name', 'Amount', 'Date'])
+        for entry in VendorTransaction.objects.filter(date__range=[start_date, end_date]):
+            ws.append([entry.vendor_name, entry.amount, entry.date])
+    else:
+        return HttpResponse("Invalid report type", status=400)
+
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = f'attachment; filename={report_type.lower()}_report.xlsx'
+    wb.save(response)
+    return response

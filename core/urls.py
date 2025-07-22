@@ -31,4 +31,13 @@ urlpatterns = [
 
     # Profile update (optional)
     path('update_profile/', views.update_profile, name='update_profile'),
+
+    # Report data for AJAX
+    path('get-report-data/', views.get_report_data, name='get_report_data'),
+
+    # Dynamic PDF/Excel exports
+    path('export/pdf/', views.export_pdf, name='export_pdf'),
+    path('export/excel/', views.export_excel, name='export_excel'),
+
+
 ]

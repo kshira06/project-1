@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: Arial, sans-serif; font-size: 12px; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #000;
+      padding: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Attendance Report</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Employee</th>
+        <th>Date</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for entry in data %}
+        <tr>
+          <td>{{ entry.user.first_name }} {{ entry.user.last_name }}</td>
+          <td>{{ entry.date }}</td>
+          <td>{{ entry.status }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</body>
+</html>

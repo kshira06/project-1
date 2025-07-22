@@ -43,7 +43,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True)
     phone = models.CharField(max_length=15, blank=True)
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='regular_user')
-    
+    first_name = models.CharField(max_length=30, blank=True, null=True)
+    last_name = models.CharField(max_length=30, blank=True, null=True)
     is_approved = models.BooleanField(default=False)
     is_blocked = models.BooleanField(default=False)
     approved_by = models.IntegerField(null=True, blank=True)
@@ -171,3 +172,13 @@ class Payroll(models.Model):
     def save(self, *args, **kwargs):
         self.calculated_salary = self.total_hours * self.hourly_rate
         super().save(*args, **kwargs)
+
+from django.db import models
+
+class VendorTransaction(models.Model):
+    vendor_name = models.CharField(max_length=100)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    date = models.DateField()
+
+    def __str__(self):
+        return f"{self.vendor_name} - {self.amount}"
