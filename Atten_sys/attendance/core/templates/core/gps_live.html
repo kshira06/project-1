@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -139,7 +140,7 @@
   <div class="sidebar">
     <ul class="nav flex-column">
       <li class="nav-item"><a href="#" class="nav-link">Dashboard</a></li>
-      <li class="nav-item"><a href="{% url 'attendance_main' %}" class="nav-link">Attendance History</a></li>
+      <li class="nav-item"><a href="{% url 'attendance_main' %}" class="nav-link">Attendance Sheet</a></li>
       <li class="nav-item"><a href="{% url 'attendance_history' %}" class="nav-link">Attendance History</a></li>
       <li class="nav-item"><a href="#" class="nav-link">Logout</a></li>
     </ul>
@@ -191,7 +192,7 @@
     <div class="row mt-5">
       <div class="col-md-6 text-center">
         <div class="map-container">
-          <img src="gps_map.jpg" alt="GPS Map" />
+          <img src="{% static 'images/gps_map.jpg' %}" alt="GPS Map" />
         </div>
       </div>
       <div class="col-md-6 location-info">
@@ -211,7 +212,7 @@
     <!-- Back Button -->
     <div class="row mt-4 text-center">
       <div class="col">
-        <a href="{% url 'attendance_main' %}" class="back-btn">← Back to Home</a>
+        <a href="{% url 'attendance_main' %}" class="back-btn"> Back to Home</a>
       </div>
     </div>
 
