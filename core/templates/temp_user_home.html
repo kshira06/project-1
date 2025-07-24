@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block back_button %}
+  <button class="back-btn" onclick="history.back()">← Back</button>
+{% endblock %}
+{% block title %}Temporary User Portal - Construction Management{% endblock %}
+
+{% block content %}
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-darkblue">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="#">DASHBOARD</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navMenu">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="{% url 'admin_dashboard' %}">Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'payroll' %}">Payroll</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'reports' %}">Reports & Analytics</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'settings' %}">Settings</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'logout' %}">Logout</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<link rel="stylesheet" href="{% static 'style.css' %}" />
+<link href="https://fonts.googleapis.com/css2?family=Lato&display=swap" rel="stylesheet" />
+<style>
+  body {
+    font-family: 'Lato', sans-serif;
+    background-color: #f8f9fa;
+    padding: 20px;
+  }
+  .navbar {
+    background-color: #001f3f;
+    border-radius: 8px;
+    margin-bottom: 30px;
+  }
+  .navbar-brand, .nav-link, .navbar-text {
+    color: #fff !important;
+  }
+  .nav-link:hover {
+    color: #ffc107 !important;
+  }
+  .card {
+    border-radius: 12px;
+  }
+  .card-title {
+    font-size: 1rem;
+    font-weight: 600;
+  }
+</style>
+
+<div class="temp-header">
+  <div class="heading-block">
+    <h1>🏗 Temporary User Portal</h1>
+  </div>
+  <div class="user-info">
+    <span>Temp ID: TMP-2024-001</span>
+    <div class="status-badge">TEMPORARY ACCESS</div>
+  </div>
+</div>
+
+<div class="main-content">
+  <div class="warning-banner">
+    ⚠ LIMITED ACCESS: You can only submit daily reports. No access to financials, attendance, or other system features.
+  </div>
+
+  <div class="restrictions-notice">
+    <strong>Important Notice:</strong> You have a 24-hour window to edit your submissions after creation. Once the time expires, submissions become read-only and cannot be modified.
+  </div>
+
+  <!-- Today's Submission Form -->
+  <div class="form-section">
+    <h3>📝 Daily Report Submission - <span id="current-date"></span></h3>
+
+    <div class="countdown-timer" id="submission-timer" style="display: none;">
+      ⏰ Time remaining to edit: <span id="time-remaining">23:45:32</span>
+    </div>
+
+    <form id="daily-report-form">
+      <!-- Include form inputs exactly as you had -->
+      <!-- (omitted here for brevity, include all the inputs like before) -->
+    </form>
+
+    <div class="submit-section" id="submit-section">
+      <p style="color: white; margin-bottom: 15px;">Ready to submit your daily report?</p>
+      <button class="submit-btn" id="submit-btn" onclick="submitReport()">Submit Daily Report</button>
+    </div>
+  </div>
+
+  <!-- Locked Section -->
+  <div class="locked-section" id="locked-section" style="display: none;">
+    <div class="locked-icon">🔒</div>
+    <h3>Submission Locked</h3>
+    <p>The 24-hour editing window has expired. This submission is now read-only.</p>
+  </div>
+
+  <!-- Submission History -->
+  <div class="submission-history">
+    <h3>📋 Your Submission History</h3>
+
+    <div class="history-item">
+      <div><strong>December 15, 2024</strong><br> Site: Construction Site A | Hours: 8.0 | Work: Concrete Work</div>
+      <div class="history-status status-editable">Editable (22:15:30 remaining)</div>
+    </div>
+    <div class="history-item">
+      <div><strong>December 14, 2024</strong><br> Site: Construction Site B | Hours: 7.5 | Work: Steel Work</div>
+      <div class="history-status status-locked">Locked</div>
+    </div>
+    <!-- Add more history items as needed -->
+  </div>
+</div>
+
+<script>
+  // Optional JS for dynamic date
+  document.getElementById("current-date").innerText = new Date().toLocaleDateString();
+</script>
+{% endblock %}

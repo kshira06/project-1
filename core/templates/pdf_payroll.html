@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+  body {
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    margin: 30px;
+  }
+
+  h2 {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;  /* Critical for proper layout */
+  }
+
+  th, td {
+    border: 1px solid black;
+    padding: 8px;
+    text-align: left;
+    word-wrap: break-word;
+  }
+
+  th {
+    font-weight: bold;
+    background-color: #f2f2f2;
+  }
+</style>
+
+</style>
+</head>
+<body>
+  <h2>Payroll Report</h2>
+  <table>
+    <thead>
+    <tr>
+        <th style="width: 30%;">Employee</th>
+        <th style="width: 30%;">Salary</th>
+        <th style="width: 40%;">Paid On</th>
+    </tr>
+    </thead>
+
+    <tbody>
+      {% for entry in data %}
+        <tr>
+          <td>{{ entry.user.first_name }} {{ entry.user.last_name }}</td>
+          <td>{{ entry.salary }}</td>
+          <td>{{ entry.paid_date }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</body>
+</html>

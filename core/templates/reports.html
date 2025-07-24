@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+  <h2 class="text-center mb-4">Generate Reports</h2>
+
+  <form id="reportForm" class="row g-3">
+    {% csrf_token %}
+    <div class="col-md-4">
+      <label for="reportType" class="form-label">Report Type</label>
+      <select id="reportType" class="form-select" required>
+        <option value="" disabled selected>Select Report</option>
+        <option value="Attendance">Attendance</option>
+        <option value="Payroll">Payroll</option>
+        <option value="Vendor Transactions">Vendor Transactions</option>
+      </select>
+    </div>
+    <div class="col-md-3">
+      <label for="startDate" class="form-label">Start Date</label>
+      <input type="date" id="startDate" class="form-control" required>
+    </div>
+    <div class="col-md-3">
+      <label for="endDate" class="form-label">End Date</label>
+      <input type="date" id="endDate" class="form-control" required>
+    </div>
+    <div class="col-md-2 d-flex align-items-end">
+      <button type="submit" class="btn btn-primary w-100">Generate</button>
+    </div>
+  </form>
+
+  <div id="reportResult" class="mt-5" style="display: none;">
+    <h4 class="mb-3">Report Summary</h4>
+    <canvas id="reportChart" width="300" height="300"></canvas>
+
+    <div class="mt-4">
+      <a id="downloadPdf" href="#" class="btn btn-danger">Export PDF</a>
+      <a id="downloadExcel" href="#" class="btn btn-success">Export Excel</a>
+    </div>
+
+    <div class="mt-4">
+      <h5>Audit Trail</h5>
+      <ul id="auditTrail" class="list-group"></ul>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const form = document.getElementById('reportForm');
+  const chartCanvas = document.getElementById('reportChart');
+  const reportSection = document.getElementById('reportResult');
+  const auditList = document.getElementById('auditTrail');
+  let chartInstance;
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;  // ✅ Correct way
+    const reportType = document.getElementById('reportType').value;
+    const startDate = document.getElementById('startDate').value;
+    const endDate = document.getElementById('endDate').value;
+
+    fetch("{% url 'get_report_data' %}", {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-CSRFToken': csrfToken
+      },
+      body: new URLSearchParams({
+        report_type: reportType,
+        start_date: startDate,
+        end_date: endDate
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (chartInstance) chartInstance.destroy();
+
+      chartInstance = new Chart(chartCanvas, {
+        type: 'pie',
+        data: {
+          labels: data.labels,
+          datasets: [{
+            label: reportType + ' Data',
+            data: data.values,
+            backgroundColor: ['#16a34a', '#dc2626']
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              position: 'bottom'
+            }
+          }
+        }
+      });
+
+      reportSection.style.display = 'block';
+
+      // Update download links
+      const basePdfUrl = "{% url 'export_pdf' %}";
+      const baseExcelUrl = "{% url 'export_excel' %}";
+
+      document.getElementById('downloadPdf').href = `${basePdfUrl}?reportType=${encodeURIComponent(reportType)}&startDate=${startDate}&endDate=${endDate}`;
+      document.getElementById('downloadExcel').href = `${baseExcelUrl}?reportType=${encodeURIComponent(reportType)}&startDate=${startDate}&endDate=${endDate}`;
+
+      // Audit Trail
+      const now = new Date().toLocaleString();
+      const log = document.createElement('li');
+      log.className = 'list-group-item';
+      log.innerHTML = `<strong>${now}:</strong> Generated <em>${reportType}</em> report from <em>${startDate}</em> to <em>${endDate}</em>`;
+      auditList.prepend(log);
+    });
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Admin Dashboard | Velandev Constructions{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <h2 class="text-center mb-2">
+    <img src="{% static 'core/admin.jpg' %}" width="40" class="me-2" />
+    Admin Dashboard
+  </h2>
+  <p class="text-center">Welcome, <strong class="text-primary">Admin!</strong> Full control of the system.</p>
+
+<!-- Modules -->
+  <div class="row mb-4">
+    <div class="col-md-4">
+      <div class="card shadow-sm">
+        <div class="card-header fw-bold"><i class="bi bi-person-badge-fill me-1"></i> User Management</div>
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item"><a href="#">Create / Manage Users</a></li>
+          <li class="list-group-item"><a href="#">Assign Roles & Permissions</a></li>
+          <li class="list-group-item"><a href="#">View All Users</a></li>
+          <li class="list-group-item"><a href="#">Assign Users to Projects</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card shadow-sm">
+        <div class="card-header fw-bold"><i class="bi bi-building-gear me-1"></i> Project Management</div>
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item"><a href="#">View All Projects</a></li>
+          <li class="list-group-item"><a href="#">Add / Edit / Delete</a></li>
+          <li class="list-group-item"><a href="{% url 'reports' %}">View Reports</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card shadow-sm">
+        <div class="card-header fw-bold"><i class="bi bi-box2-heart me-1"></i> Materials & Payroll</div>
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item"><a href="{% url 'materials' %}">Approve Materials</a></li>
+          <li class="list-group-item"><a href="{% url 'payroll' %}">Set Salaries / Payroll</a></li>
+          <li class="list-group-item"><a href="#">Monitor Inventory</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="row g-4 mb-4">
+    <div class="col-md-3">
+      <a href="" class="text-decoration-none text-dark">
+        <div class="card shadow-sm text-center h-100">
+          <div class="card-body">
+            <div class="text-primary"><i class="bi bi-people-fill fs-2"></i></div>
+            <h6 class="card-title mt-2">Total Users</h6>
+            <p class="h4">56</p>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <div class="col-md-3">
+      <a href="{% url 'materials' %}" class="text-decoration-none text-dark">
+        <div class="card shadow-sm text-center h-100">
+          <div class="card-body">
+            <div class="text-info"><i class="bi bi-box-seam fs-2"></i></div>
+            <h6 class="card-title mt-2">Pending Materials</h6>
+            <p class="h4">8</p>
+            <button class="btn btn-sm btn-outline-dark mt-2">View List</button>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <div class="col-md-3">
+      <a href="{% url 'payroll' %}" class="text-decoration-none text-dark">
+        <div class="card shadow-sm text-center h-100">
+          <div class="card-body">
+            <div class="text-success"><i class="bi bi-currency-rupee fs-2"></i></div>
+            <h6 class="card-title mt-2">Payroll</h6>
+            <p class="h4">₹2,45,000</p>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <div class="col-md-3">
+      <a href="{% url 'notifications' %}" class="text-decoration-none text-dark">
+        <div class="card shadow-sm text-center h-100">
+          <div class="card-body">
+            <div class="text-danger"><i class="bi bi-bell-fill fs-2"></i></div>
+            <h6 class="card-title mt-2">Notifications</h6>
+            <p class="h4">5</p>
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- Extra Quick Stats Row -->
+  <div class="row mt-4">
+    <div class="col-md-6">
+      <div class="card text-white bg-primary shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">Total Registered Users</h5>
+          <p class="card-text display-6">56</p>
+          <p class="mb-0">Includes all roles</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card text-white bg-warning shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">Pending Approvals</h5>
+          <p class="card-text display-6">8</p>
+          <p class="mb-0">Awaiting Admin Review</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+   <!-- Charts -->
+  <div class="row mt-5">
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-body">
+          <h6 class="text-primary">User Role Distribution</h6>
+          <canvas id="roleChart" height="200"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-body">
+          <h6 class="text-primary">Monthly Attendance Trend</h6>
+          <canvas id="attendanceChart" height="200"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Login Table -->
+  <div class="card mt-5">
+    <div class="card-body">
+      <h6 class="text-primary">Recent Logins</h6>
+      <div class="table-responsive">
+        <table class="table table-bordered">
+          <thead class="bg-darkblue text-warning">
+            <tr><th>#</th><th>User</th><th>Time</th><th>IP</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>john@example.com</td><td>2025‑07‑16 09:20</td><td>192.168.1.2</td><td><span class="badge bg-success">Success</span></td></tr>
+            <tr><td>2</td><td>lisa@example.com</td><td>2025‑07‑15 18:04</td><td>192.168.1.3</td><td><span class="badge bg-danger">Failed</span></td></tr>
+            <tr><td>3</td><td>sam@example.com</td><td>2025‑07‑14 11:30</td><td>192.168.1.5</td><td><span class="badge bg-success">Success</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<!-- Include Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const roleCtx = document.getElementById('roleChart');
+  const attendanceCtx = document.getElementById('attendanceChart');
+  if (roleCtx) {
+    new Chart(roleCtx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Admin', 'Engineer', 'Regular', 'Temp'],
+        datasets: [{
+          data: [5, 10, 30, 11],
+          backgroundColor: ['#ffc107', '#0d6efd', '#198754', '#6c757d']
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'bottom'
+          }
+        }
+      }
+    });
+  }
+  if (attendanceCtx) {
+    new Chart(attendanceCtx, {
+      type: 'line',
+      data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+        datasets: [{
+          label: 'Present Days',
+          data: [22, 20, 25, 27, 24, 26],
+          fill: true,
+          backgroundColor: 'rgba(0,51,102,0.2)',
+          borderColor: '#003366'
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    });
+  }
+});
+</script>
+{% endblock %}
