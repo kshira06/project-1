@@ -1,0 +1,300 @@
+<!-- attendance_main.html -->
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Attendance Dashboard</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Lato', sans-serif;
+      background-color: #f4f4f4;
+    }
+    .topnav {
+      background-color: black;
+      color: white;
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .topnav .logo {
+      font-weight: bold;
+      font-size: 20px;
+      letter-spacing: 1px;
+    }
+    .topnav .icons {
+      font-size: 18px;
+    }
+
+    .container {
+      display: flex;
+    }
+
+    .sidebar {
+      width: 200px;
+      background-color: #1E3A8A;
+      height: 100vh;
+      color: white;
+      padding-top: 20px;
+    }
+
+    .sidebar a {
+      display: block;
+      padding: 12px 20px;
+      color: white;
+      text-decoration: none;
+      transition: 0.3s;
+    }
+
+    .sidebar a:hover, .sidebar a.active {
+      background-color: #3749a3;
+    }
+
+    .content {
+      flex: 1;
+      padding: 20px;
+    }
+
+    .cards {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      background: white;
+      border-left: 6px solid #1E3A8A;
+      padding: 20px;
+      margin: 10px;
+      width: 22%;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .card h3 {
+      margin: 0;
+      font-size: 16px;
+      color: #333;
+    }
+
+    .card p {
+      margin-top: 5px;
+      font-weight: bold;
+      font-size: 18px;
+      color: #1E3A8A;
+    }
+
+    .filters {
+      text-align: right;
+      margin-bottom: 15px;
+    }
+
+    .filters select {
+      padding: 8px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+
+    form button {
+      margin: 10px 10px 0 0;
+      padding: 10px 20px;
+      background-color: #1E3A8A;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    form button:hover {
+      background-color: #3749a3;
+    }
+
+    .bottom-buttons {
+      text-align: center;
+      margin-top: 30px;
+    }
+
+    .bottom-buttons button {
+      margin: 0 15px;
+      padding: 12px 25px;
+      background-color: #1E3A8A;
+      color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .bottom-buttons button:hover {
+      background-color: #2c4ea1;
+    }
+
+    .view-history {
+      margin-top: 20px;
+    }
+
+    .view-history a {
+      text-decoration: none;
+      background-color: #1E3A8A;
+      color: white;
+      padding: 10px 18px;
+      border-radius: 5px;
+    }
+
+    h2 {
+      margin-top: 0;
+    }
+      .attendance-box {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 20px;
+  }
+
+  .attendance-box .info-card {
+    background-color: #1E3A8A;
+    color: white;
+    padding: 15px 25px;
+    margin: 10px;
+    border-radius: 8px;
+    min-width: 200px;
+    text-align: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  }
+
+  .attendance-box .info-card h4 {
+    margin: 0 0 5px;
+    font-size: 14px;
+    font-weight: 400;
+    color: #e0eaff;
+  }
+
+  .attendance-box .info-card p {
+    margin: 0;
+    font-size: 18px;
+    font-weight: bold;
+    color: #fff;
+  }
+
+  .attendance-date {
+    text-align: center;
+    font-size: 20px;
+    font-weight: 600;
+    margin-top: 20px;
+    color: #1E3A8A;
+  }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="sidebar">
+      <a href="#"> Dashboard</a>
+      <a href="#" class="active">🗓️ Attendance Sheet</a>
+      <a href="{% url 'attendance_history' %}">📜 Attendance History</a>
+      <a href="{% url 'gps_live_view' %}">📡 Live GPS Validation</a>
+      <a href="#"> Logout</a>
+    </div>
+
+    <div class="content">
+      <div class="filters">
+        <label for="date_range">📅 Date Range: </label>
+        <select name="date_range" id="date_range">
+        {% for day in days_range %}
+        <option value="{{ day }}">{{ day }}</option>
+        {% endfor %}
+      </select>
+      </div>
+
+      <div class="cards">
+        <div class="card">
+          <h3>Total Work Hours</h3>
+          <p>{{ total_work_hours }} hrs</p>
+        </div>
+        <div class="card">
+          <h3>Total Break Time</h3>
+          <p>{{ total_break_time }} mins</p>
+        </div>
+        <div class="card">
+          <h3>Total Time Balance</h3>
+          <p>{{ total_time_balance }}</p>
+        </div>
+        <div class="card">
+          <h3>Total Leaves</h3>
+          <p>{{ total_leaves }}</p>
+        </div>
+      </div>
+
+      <h2> Today's Attendance</h2>
+
+<div class="attendance-date">📅 {{ today_attendance.date }}</div>
+
+<div class="attendance-box">
+  <div class="info-card">
+    <h4>Clock In</h4>
+    <p>{{ today_attendance.clock_in|default:"Not yet" }}</p>
+  </div>
+  <div class="info-card">
+    <h4>Clock Out</h4>
+    <p>{{ today_attendance.clock_out|default:"Not yet" }}</p>
+  </div>
+</div>
+
+<div class="attendance-box">
+  <div class="info-card">
+    <h4>Break Start</h4>
+    <p>{{ today_attendance.break_start|default:"--" }}</p>
+  </div>
+  <div class="info-card">
+    <h4>Break End</h4>
+    <p>{{ today_attendance.break_end|default:"--" }}</p>
+  </div>
+</div>
+      
+
+      <form method="post">
+        {% csrf_token %}
+        {% if not today_attendance.clock_in %}
+          <button type="submit" name="action" value="clock">Clock In</button>
+        {% elif not today_attendance.clock_out %}
+          <button type="submit" name="action" value="clock">Clock Out</button>
+          {% if not today_attendance.break_start %}
+            <button type="submit" name="action" value="start_break">Start Break</button>
+          {% elif not today_attendance.break_end %}
+            <button type="submit" name="action" value="end_break">End Break</button>
+          {% endif %}
+        {% else %}
+          <button disabled>Attendance Done</button>
+        {% endif %}
+      </form>
+      <form method="POST" class="action-form">
+  {% csrf_token %}
+  <div class="bottom-buttons">
+    {% if not today_attendance.clock_in %}
+      <button type="submit" name="action" value="clock" class="btn clock-in">🕒 Clock In</button>
+    {% elif not today_attendance.clock_out %}
+      <button type="submit" name="action" value="clock" class="btn clock-out">🔚 Clock Out</button>
+
+      {% if not today_attendance.break_start %}
+        <button type="submit" name="action" value="start_break" class="btn break-start">☕ Start Break</button>
+      {% elif not today_attendance.break_end %}
+        <button type="submit" name="action" value="end_break" class="btn break-end">🔁 End Break</button>
+      {% endif %}
+    {% else %}
+      <button class="btn done" disabled> Attendance Done</button>
+    {% endif %}
+    
+<a href="{% url 'gps_live_view' %}" class="btn gps" style="display:inline-block; padding:10px 20px; background:#0050a0; color:#fff; text-decoration:none; border-radius:5px;">📍 Live GPS Validation</a>
+
+  </div>
+</form>
+
+      <div class="view-history">
+        <a href="{% url 'attendance_history' %}"> View Attendance History</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
